@@ -407,7 +407,7 @@
     if(!state.loaded||!isLoggedIn()){message('Войди через Google и загрузи лайки.','warning');return;}
     if(!validVideoId(videoId)||!state.likes.some(row=>row.videoId===videoId))return;
     const entry=listEntries().find(e=>e.videoId===videoId);
-    if(!window.confirm('Снять лайк с «'+(entry?.title||videoId)+'» в настоящем YouTube?\\n\\nЭто не дизлайк. Видео останется в остальных плейлистах.'))return;
+    if(!window.confirm('Снять лайк с «'+(entry?.title||videoId)+'» в настоящем YouTube?\n\nЭто не дизлайк. Видео останется в остальных плейлистах.'))return;
     state.unliking=true;render();
     try {
       await api('removeVideoLike',videoId);
@@ -423,7 +423,7 @@
     const all=filteredEntries().filter(e=>e.sources.some(s=>s.kind==='likes'));
     const batch=all.slice(0,25);
     if(!batch.length){message('Под фильтрами нет лайкнутых видео.','warning');return;}
-    const phrase=window.prompt('Будут сняты '+batch.length+' настоящих лайков YouTube (50 единиц квоты за каждый).\\nВидео останутся в плейлистах.\\n\\nДля подтверждения введи: СНЯТЬ ЛАЙКИ');
+    const phrase=window.prompt('Будут сняты '+batch.length+' настоящих лайков YouTube (50 единиц квоты за каждый).\nВидео останутся в плейлистах.\n\nДля подтверждения введи: СНЯТЬ ЛАЙКИ');
     if(phrase!=='СНЯТЬ ЛАЙКИ')return;
     state.unliking=true;render();
     let done=0;const failed=[];
