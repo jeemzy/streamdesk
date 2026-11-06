@@ -226,6 +226,14 @@
       thumb:String((x.snippet?.thumbnails?.medium || x.snippet?.thumbnails?.default || {}).url || '')
     })),nextPageToken:d.nextPageToken || null};
   }
+  // Unlike a video on the user's actual YouTube account. No dislike is applied.
+  async function removeVideoLike(videoId) {
+    if(typeof videoId !== 'string' || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+      throw new Error('Некорректный ID видео.');
+    }
+    await request('POST', '/videos/rate', {id:videoId, rating:'none'});
+    return true;
+  }
   // The liked-video endpoint supports up to the newest 1000 liked videos.
   async function getLikedVideosPage(pageToken) {
     const d = await request('GET', '/videos', {
@@ -251,6 +259,6 @@
   }
   window.StreamDeskAPI = Object.freeze({
     signIn,signOut,isAuthorized,getSubscriptionsPage,getCurrentChannel,subscribeToChannel,unsubscribeMany,
-    getPlaylistsPage,getPlaylistItemsPage,getLikedVideosPage,getVideoDetails
+    getPlaylistsPage,getPlaylistItemsPage,getLikedVideosPage,getVideoDetails,removeVideoLike
   });
 })();
