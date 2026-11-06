@@ -13,7 +13,7 @@
     loaded:false, loading:false, generation:0, errors:[],
     source:'all',service:'all',playlist:'all',search:'',channelSearch:'',
     channels:new Set(),channelsOpen:false,page:0,
-    playlistTypes:{},videoTypes:{},db:null
+    playlistTypes:{},videoTypes:{},db:null,unliking:false
   };
   const $ = id => document.getElementById(id);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
@@ -152,12 +152,14 @@
     const thumb=e.thumb||('https://i.ytimg.com/vi/'+e.videoId+'/mqdefault.jpg');
     const date=e.addedAt&&Number.isFinite(Date.parse(e.addedAt)) ? new Date(e.addedAt).toLocaleDateString('ru-RU') : '';
     const edit=state.videoTypes[e.videoId]||'auto';
+    const liked=e.sources.some(s=>s.kind==='likes');
     return '<article class="library-video">'+
       '<a class="library-thumb" href="'+e.url+'" target="_blank" rel="noopener noreferrer" aria-label="Открыть '+esc(e.title)+'"><img src="'+esc(thumb)+'" alt="" loading="lazy"></a>'+
       '<div class="library-video-main"><a class="library-video-title" href="'+e.url+'" target="_blank" rel="noopener noreferrer">'+esc(e.title)+'</a>'+
       '<div class="library-video-sub">'+esc(e.channel)+(date?' · '+esc(date):'')+'</div>'+
       '<div class="library-video-tags">'+services+sourceNames.slice(0,3).map(n=>'<span class="library-source-tag" title="'+esc(n)+'">'+esc(n)+'</span>').join('')+(sourceNames.length>3?'<span class="library-source-tag">+'+(sourceNames.length-3)+'</span>':'')+'</div></div>'+
-      '<label class="library-video-edit">Тип<select data-library-video-type="'+esc(e.videoId)+'" aria-label="Категория видео '+esc(e.title)+'"><option value="auto" '+(edit==='auto'?'selected':'')+'>По плейлисту</option><option value="youtube" '+(edit==='youtube'?'selected':'')+'>YouTube</option><option value="music" '+(edit==='music'?'selected':'')+'>Music</option><option value="unknown" '+(edit==='unknown'?'selected':'')+'>Неизвестно</option></select></label></article>';
+      '<div class="library-video-tools"><label class="library-video-edit">Тип<select data-library-video-type="'+esc(e.videoId)+'" aria-label="Категория видео '+esc(e.title)+'"><option value="auto" '+(edit==='auto'?'selected':'')+'>По плейлисту</option><option value="youtube" '+(edit==='youtube'?'selected':'')+'>YouTube</option><option value="music" '+(edit==='music'?'selected':'')+'>Music</option><option value="unknown" '+(edit==='unknown'?'selected':'')+'>Неизвестно</option></select></label>'+
+      (liked?'<button type="button" class="library-unlike-one" data-library-unlike="'+esc(e.videoId)+'" '+(state.unliking?'disabled':'')+' title="Снять лайк в настоящем YouTube">♡ Снять лайк</button>':'')+'</div></article>';
   }
   function renderRows(filtered){
     const counts=new Map();for(const e of filtered)counts.set(e.channelKey,(counts.get(e.channelKey)||0)+1);
@@ -189,6 +191,11 @@
     $('navLibraryCount').textContent=all.length?fmt(all.length):'—';
     $('libraryImportedCount').textContent='Локальных видео: '+fmt(state.watchlater.length);
     $('libraryResultCaption').textContent=fmt(filtered.length)+' видео'+(filtered.length!==all.length?' из '+fmt(all.length):'')+(state.loading?' · идёт загрузка…':'');
+    const likedFiltered=filtered.filter(e=>e.sources.some(src=>src.kind==='likes')).length;
+    const bulk=$('libraryUnlikeFiltered');
+    bulk.textContent='♡ Снять лайки: '+fmt(Math.min(likedFiltered,25))+(likedFiltered>25?' из '+fmt(likedFiltered):'');
+    bulk.disabled=!isLoggedIn()||!state.loaded||state.loading||state.unliking||likedFiltered===0;
+    bulk.title=likedFiltered>25?'За одну операцию — максимум 25 лайков. Повтори для остальных.':'Снять реальные лайки у видео, подходящих под текущие фильтры';
     $$('.library-service').forEach(el=>el.classList.toggle('active',el.dataset.libraryService===state.service));
     $$('.library-source').forEach(el=>el.classList.toggle('active',el.dataset.librarySource===state.source));
     renderPlaylistOptions();renderChannelOptions();renderTypeList();renderRows(filtered);
@@ -211,7 +218,7 @@
     if(isLoggedIn()&&$('view-library')&&!$('view-library').classList.contains('hidden'))load();
   }
   async function load(){
-    if(state.loading)return;
+    if(state.loading||state.unliking)return;
     if(!isLoggedIn()){setNotice('Для загрузки медиатеки войди через Google.');return;}
     const gen=++state.generation;
     state.loading=true;state.loaded=false;state.errors=[];
@@ -389,6 +396,51 @@
       const gen=state.generation;await enrichMissing(gen);render();
     }
   }
+  // A successful API response removes only the Like membership; it never
+  // removes the video from any of the user's playlists or local Watch Later.
+  function forgetLike(videoId){
+    state.likes=state.likes.filter(row=>row.videoId!==videoId);
+    render();
+  }
+  async function unlikeOne(videoId){
+    if(state.unliking||state.loading)return;
+    if(!state.loaded||!isLoggedIn()){message('Войди через Google и загрузи лайки.','warning');return;}
+    if(!validVideoId(videoId)||!state.likes.some(row=>row.videoId===videoId))return;
+    const entry=listEntries().find(e=>e.videoId===videoId);
+    if(!window.confirm('Снять лайк с «'+(entry?.title||videoId)+'» в настоящем YouTube?\\n\\nЭто не дизлайк. Видео останется в остальных плейлистах.'))return;
+    state.unliking=true;render();
+    try {
+      await api('removeVideoLike',videoId);
+      forgetLike(videoId);
+      message('Лайк снят в YouTube.');
+    } catch(e){message('Не удалось снять лайк: '+String(e.message||e),'error');}
+    finally{state.unliking=false;render();}
+  }
+  async function unlikeFiltered(){
+    if(state.unliking||state.loading||!state.loaded)return;
+    if(!isLoggedIn()){message('Войди через Google для изменения лайков.','warning');return;}
+    // Apply all current filters including the channel multiselect and media type.
+    const all=filteredEntries().filter(e=>e.sources.some(s=>s.kind==='likes'));
+    const batch=all.slice(0,25);
+    if(!batch.length){message('Под фильтрами нет лайкнутых видео.','warning');return;}
+    const phrase=window.prompt('Будут сняты '+batch.length+' настоящих лайков YouTube (50 единиц квоты за каждый).\\nВидео останутся в плейлистах.\\n\\nДля подтверждения введи: СНЯТЬ ЛАЙКИ');
+    if(phrase!=='СНЯТЬ ЛАЙКИ')return;
+    state.unliking=true;render();
+    let done=0;const failed=[];
+    try {
+      for(const entry of batch){
+        try {
+          await api('removeVideoLike',entry.videoId);
+          state.likes=state.likes.filter(row=>row.videoId!==entry.videoId);
+          done++;
+        } catch(e) {
+          failed.push(entry.title+': '+String(e.message||e));
+          if(!isLoggedIn()||/квот/i.test(String(e.message||e)))break;
+        }
+      }
+      message('Лайки сняты: '+done+' из '+batch.length+'.'+(failed.length?' Не удалось: '+failed.length+'. '+failed[0]:'') , failed.length?'warning':'success');
+    } finally {state.unliking=false;render();}
+  }
   function clearFilters(){
     state.source='all';state.service='all';state.playlist='all';state.search='';state.channels.clear();state.channelSearch='';state.page=0;
     $('librarySearch').value='';$('libraryChannelSearch').value='';render();
@@ -407,11 +459,14 @@
     if(source){state.source=source.dataset.librarySource;if(state.source!=='playlists')state.playlist='all';setFilters();return;}
     const chip=e.target.closest('[data-library-remove-channel]');
     if(chip){state.channels.delete(decodeURIComponent(chip.dataset.libraryRemoveChannel));setFilters();return;}
+    const unlike=e.target.closest('[data-library-unlike]');
+    if(unlike){await unlikeOne(unlike.dataset.libraryUnlike);return;}
     const act=e.target.closest('[data-library-action]');
     if(act){
       switch(act.dataset.libraryAction){
         case 'refresh':await load();break;
         case 'export':exportCsv();break;
+        case 'unlike-filtered':await unlikeFiltered();break;
         case 'toggle-channels':state.channelsOpen=!state.channelsOpen;renderChannelOptions();if(state.channelsOpen)$('libraryChannelSearch').focus();break;
         case 'clear-channels':state.channels.clear();setFilters();break;
         case 'clear-filters':clearFilters();break;
