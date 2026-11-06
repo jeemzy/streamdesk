@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0c0e12">
+  <meta name="referrer" content="no-referrer">
+  <title>StreamDesk — управление YouTube</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><rect x="1" y="1" width="46" height="46" rx="14" fill="#FA475B"/><path d="m20 15 15 9-15 9V15Z" fill="#fff"/><path d="M13 18v12" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span>
+        <span><strong>StreamDesk</strong><small>Youtube workspace</small></span>
+      </div>
+
+      <div class="nav-label">МОЁ ПРОСТРАНСТВО</div>
+      <nav class="side-nav" aria-label="Основная навигация">
+        <button type="button" class="nav-item active" data-view="overview">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></span>
+          Обзор
+        </button>
+        <button type="button" class="nav-item" data-view="subscriptions">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="4"/><path d="m10 9 6 3-6 3V9Z"/></svg></span>
+          Подписки
+          <span id="navSubsCount" class="nav-counter">—</span>
+        </button>
+        <button type="button" class="nav-item" data-view="history">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v6l4 2"/></svg></span>
+          История просмотров
+        </button>
+      </nav>
+      <div class="nav-label spacer-label">ИНСТРУМЕНТЫ</div>
+      <nav class="side-nav" aria-label="Полезные ссылки">
+        <a class="nav-item" href="https://takeout.google.com/" target="_blank" rel="noopener noreferrer">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 17v3h16v-3"/></svg></span>
+          Google Takeout
+          <span class="nav-external">↗</span>
+        </a>
+        <a class="nav-item" href="https://myactivity.google.com/product/youtube" target="_blank" rel="noopener noreferrer">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2M3 12a9 9 0 1 0 9-9M3 4v5h5"/></svg></span>
+          My Activity
+          <span class="nav-external">↗</span>
+        </a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="security-note"><span class="secure-dot"></span><span>Твои данные — под контролем</span></div>
+        <small>История хранится только в этом браузере. Подписки изменяются в YouTube после подтверждения.</small>
+      </div>
+    </aside>
+
+    <div class="content-area">
+      <header class="topbar">
+        <div class="topbar-left"><span class="breadcrumb">WORKSPACE</span><span class="breadcrumb-sep">/</span><span id="breadcrumbCurrent">Обзор</span></div>
+        <div class="topbar-right">
+          <span id="modeChip" class="mode-chip"><i></i> <span id="modeText">Google не подключён</span></span>
+          <a class="icon-link" href="https://support.google.com/youtube/answer/95725?hl=ru" target="_blank" rel="noopener noreferrer" title="Помощь по истории YouTube" aria-label="Помощь">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg>
+          </a>
+          <button id="authButton" class="btn primary auth-button" type="button" data-action="google-login">Войти через Google</button><div class="account-avatar" id="channelAvatar" title="Аккаунт не подключён">G</div>
+        </div>
+      </header>
+
+      <div id="demoNotice" class="notice demo-notice hidden" role="status">
+        <span class="notice-ic">◎</span>
+        <span>Подключи Google-аккаунт, чтобы загрузить и управлять своими подписками YouTube. Историю Takeout можно импортировать и без входа.</span>
+        <button type="button" class="notice-dismiss" data-action="dismiss-demo" aria-label="Закрыть">×</button>
+      </div>
+
+      <main>
+        <!-- OVERVIEW -->
+        <section class="page view-page" id="view-overview">
+          <div class="eyebrow"><span class="red-dot"></span> ЦЕНТР УПРАВЛЕНИЯ</div>
+          <div class="page-intro overview-intro">
+            <div>
+              <h1>Твой YouTube.<br><span class="gradient-text">Твои правила.</span></h1>
+              <p>Подписки, история просмотров и экспорт данных — в одном аккуратном пространстве.</p>
+              <div class="intro-actions">
+                <button class="btn primary" type="button" data-view="subscriptions">Управлять подписками <span>↗</span></button>
+                <button class="btn secondary" type="button" data-view="history">Открыть историю</button>
+              </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+              <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+              <div class="hero-main-card"><div class="hero-card-top"><span class="hero-dot"></span><span class="hero-dot"></span><span class="hero-dot"></span></div><div class="hero-play">▶</div><div class="hero-lines"><i></i><i></i></div></div>
+              <div class="float-chip music-float"><span>♫</span> Music</div>
+              <div class="float-chip check-float"><span>✓</span> CSV ready</div>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card"><span class="stat-label">Мои подписки <span>↗</span></span><strong id="statSubscriptions">—</strong><span class="stat-footer">Каналов в YouTube</span><div class="stat-symbol red-symbol">▤</div></div>
+            <div class="stat-card"><span class="stat-label">Всего просмотров <span>↗</span></span><strong id="statHistory">0</strong><span class="stat-footer">В локальной истории</span><div class="stat-symbol blue-symbol">◷</div></div>
+            <div class="stat-card"><span class="stat-label">YouTube Music <span>↗</span></span><strong id="statMusic">0</strong><span class="stat-footer">Записей из Music</span><div class="stat-symbol purple-symbol">♫</div></div>
+            <div class="stat-card"><span class="stat-label">Уникальных каналов <span>↗</span></span><strong id="statChannels">0</strong><span class="stat-footer">В истории просмотров</span><div class="stat-symbol green-symbol">◎</div></div>
+          </div>
+          <div class="section-heading"><div><h2>Быстрые действия</h2><p>Всё необходимое в пару кликов</p></div></div>
+          <div class="quick-grid">
+            <button type="button" class="quick-card" data-view="subscriptions"><div class="quick-icon accent-red">▣</div><div class="quick-info"><h3>Подписки</h3><p>Найди, добавь или удали каналы. Экспортируй список в CSV.</p></div><span class="quick-arrow">↗</span></button>
+            <button type="button" class="quick-card" data-action="import-history"><div class="quick-icon accent-purple">⇧</div><div class="quick-info"><h3>Импорт истории</h3><p>Загрузи ZIP, JSON или HTML из Google Takeout.</p></div><span class="quick-arrow">↗</span></button>
+            <button type="button" class="quick-card" data-action="export-history"><div class="quick-icon accent-blue">↓</div><div class="quick-info"><h3>Скачать CSV</h3><p>Сохрани отфильтрованную историю у себя на устройстве.</p></div><span class="quick-arrow">↗</span></button>
+          </div>
+          <div class="footnote">Подписки синхронизируются с YouTube API. История просмотров импортируется отдельно через Google Takeout.</div>
+        </section>
+
+        <!-- SUBSCRIPTIONS -->
+        <section class="page view-page hidden" id="view-subscriptions">
+          <div class="eyebrow"><span class="red-dot"></span> YOUTUBE SUBSCRIPTIONS</div>
+          <div class="page-heading"><div><h1>Мои подписки<span class="heading-period">.</span></h1><p>Наведи порядок в каналах, на которые подписан.</p></div><div class="heading-actions"><button class="btn secondary" type="button" data-action="export-subs">↓ Экспорт CSV</button><button class="btn primary" type="button" data-action="open-add">+ Добавить канал</button></div></div>
+          <div class="content-card">
+            <div class="card-toolbar">
+              <div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input id="subSearch" type="search" placeholder="Поиск по названиям каналов…" autocomplete="off" aria-label="Поиск подписок"></div>
+              <select id="subSort" class="control-select" aria-label="Сортировка подписок"><option value="name">А–Я</option><option value="date-desc">Недавно добавленные</option><option value="date-asc">Сначала старые</option></select>
+              <button class="btn icon-btn" data-action="reload-subs" type="button" title="Обновить подписки" aria-label="Обновить подписки">↻</button>
+            </div>
+            <div class="list-subheader"><label class="custom-check"><input id="selectAllSubs" type="checkbox"><span></span></label><span id="subsResultCaption">Подписки ещё не загружены</span><span class="subheader-right">Управление каналами</span></div>
+            <div id="subsList" class="items-list"><div class="empty-state"><span>◫</span><h3>Подключи свой YouTube</h3><p>Подписки появятся здесь после авторизации Google.</p><button class="btn primary" data-action="reload-subs" type="button">Загрузить подписки</button></div></div>
+            <div id="subsPaginator" class="paginator hidden"><button class="btn secondary small" type="button" data-action="sub-prev">← Назад</button><span id="subsPageLabel">1 / 1</span><button class="btn secondary small" type="button" data-action="sub-next">Вперёд →</button></div>
+          </div>
+          <div id="subsBulkBar" class="bulk-bar hidden"><span><strong id="subsSelectedCount">0</strong> выбрано</span><button class="btn secondary small" data-action="export-selected-subs" type="button">↓ CSV выбранных</button><button class="btn danger small" data-action="delete-subs" type="button">Отписаться от выбранных</button><button class="btn ghost small" data-action="clear-subs-selection" type="button">Сбросить</button></div>
+          <div class="info-inline"><span>ⓘ</span> Отписка удаляет канал из реальных подписок YouTube. Для этого понадобится подтверждение.</div>
+        </section>
+
+        <!-- HISTORY -->
+        <section class="page view-page hidden" id="view-history">
+          <div class="eyebrow"><span class="red-dot"></span> WATCH HISTORY MANAGER</div>
+          <div class="page-heading"><div><h1>История просмотров<span class="heading-period">.</span></h1><p>Фильтруй, классифицируй и выгружай историю YouTube и YouTube Music.</p></div><div class="heading-actions"><button class="btn secondary" type="button" data-action="export-history">↓ Экспорт CSV</button><button class="btn primary" type="button" data-action="import-history">⇧ Импорт Takeout</button></div></div>
+
+          <div class="history-upload" id="historyUploadCard">
+            <div class="upload-icon">⇧</div>
+            <div><h3>Импортируй историю Google Takeout</h3><p>ZIP, <code>watch-history.json</code> или <code>watch-history.html</code>. Архив читается локально — его содержимое не отправляется на сервер.</p></div>
+            <button class="btn secondary" type="button" data-action="import-history">Выбрать файл</button>
+          </div>
+
+          <div class="type-tabs" role="group" aria-label="Тип истории">
+            <button class="type-tab selected" data-type="all" type="button">Все <span id="typeAllCount">0</span></button>
+            <button class="type-tab" data-type="youtube" type="button"><span class="type-bullet youtube-bullet"></span> YouTube <span id="typeYoutubeCount">0</span></button>
+            <button class="type-tab" data-type="music" type="button"><span class="type-bullet music-bullet"></span> YouTube Music <span id="typeMusicCount">0</span></button>
+            <button class="type-tab" data-type="unknown" type="button">Не определено <span id="typeUnknownCount">0</span></button>
+          </div>
+
+          <div class="history-layout">
+            <div class="content-card history-main-card">
+              <div class="history-filters">
+                <div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input id="historySearch" type="search" placeholder="Поиск по видео или каналу…" autocomplete="off" aria-label="Поиск истории"></div>
+                <select id="historyChannel" class="control-select grow-select" aria-label="Фильтр по каналу"><option value="">Все каналы</option></select>
+              </div>
+              <div class="history-extra-filters">
+                <label class="date-filter">С <input id="histDateFrom" type="date" aria-label="Дата с"></label>
+                <label class="date-filter">По <input id="histDateTo" type="date" aria-label="Дата по"></label>
+                <label class="toggle-text"><input id="histOnlySubscribed" type="checkbox"><span>Только каналы из подписок</span></label>
+                <button class="filter-clear" data-action="clear-history-filters" type="button">Сбросить фильтры</button>
+              </div>
+              <div class="list-subheader history-subheader"><label class="custom-check"><input id="selectAllHistory" type="checkbox"><span></span></label><span id="historyResultCaption">0 записей</span><span class="subheader-right">Дата просмотра</span></div>
+              <div id="historyList" class="items-list"><div class="empty-state"><span>◷</span><h3>История пока пуста</h3><p>Импортируй историю из Google Takeout, чтобы увидеть просмотры.</p><button class="btn primary" type="button" data-action="import-history">Импортировать историю</button></div></div>
+              <div id="historyPaginator" class="paginator hidden"><button class="btn secondary small" type="button" data-action="history-prev">← Назад</button><span id="historyPageLabel">1 / 1</span><button class="btn secondary small" type="button" data-action="history-next">Вперёд →</button></div>
+            </div>
+            <aside class="history-insights">
+              <div class="insights-heading"><h3>Топ каналов</h3><span>ПО ПРОСМОТРАМ</span></div>
+              <div id="topChannels" class="top-channels"><p class="muted">Появятся после импорта.</p></div>
+              <div class="insight-divider"></div>
+              <h3>Управление историей</h3>
+              <p class="insight-copy">Удаление здесь скрывает запись только в локальной копии. Настоящую историю можно удалить в Google My Activity.</p>
+              <a class="insight-link" href="https://myactivity.google.com/product/youtube" target="_blank" rel="noopener noreferrer">Перейти в My Activity ↗</a>
+              <button class="clear-local" type="button" data-action="clear-local">Очистить локальную историю</button>
+            </aside>
+          </div>
+          <div id="historyBulkBar" class="bulk-bar hidden"><span><strong id="historySelectedCount">0</strong> выбрано</span><button class="btn secondary small" type="button" data-action="export-selected-history">↓ CSV выбранных</button><select id="historyBulkType" class="control-select bulk-select" aria-label="Тип выбранных"><option value="">Изменить тип…</option><option value="youtube">YouTube</option><option value="music">YouTube Music</option><option value="unknown">Не определено</option></select><button class="btn secondary small" type="button" data-action="apply-history-type">Применить</button><button class="btn danger small" type="button" data-action="delete-history">Удалить локально</button><button class="btn ghost small" type="button" data-action="clear-history-selection">Сбросить</button></div>
+          <div class="info-inline"><span>ⓘ</span> Категории определяются по метаданным Takeout. Если тип не указан, его можно задать вручную.</div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <input type="file" id="takeoutFile" accept=".json,.html,.htm,.zip,application/json,text/html,application/zip" multiple class="visually-hidden" aria-label="Файл истории Google Takeout">
+
+  <div id="modalBackdrop" class="modal-backdrop hidden" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-heading"><h2 id="modalTitle">Заголовок</h2><button class="close-modal" type="button" data-action="close-modal" aria-label="Закрыть">×</button></div>
+      <div id="modalBody" class="modal-body"></div>
+      <div id="modalFooter" class="modal-actions"></div>
+    </div>
+  </div>
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="oauth.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
