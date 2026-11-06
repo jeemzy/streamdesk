@@ -59,13 +59,14 @@
     });
   }
   function activateView(view) {
-    if (!['overview', 'subscriptions', 'history'].includes(view)) return;
+    if (!['overview', 'subscriptions', 'history', 'library'].includes(view)) return;
     ST.view = view;
     qsa('.view-page').forEach(el => el.classList.toggle('hidden', el.id !== 'view-' + view));
     qsa('.side-nav .nav-item[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === view));
-    $('breadcrumbCurrent').textContent = ({overview:'Обзор',subscriptions:'Подписки',history:'История просмотров'})[view];
+    $('breadcrumbCurrent').textContent = ({overview:'Обзор',subscriptions:'Подписки',history:'История просмотров',library:'Медиатека'})[view];
     if (view === 'subscriptions' && !ST.subsLoaded && !ST.subsLoading) loadSubscriptions();
     if (view === 'history') renderHistory();
+    if (view === 'library') window.StreamDeskLibrary?.enter();
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -107,6 +108,7 @@
       updateAuthUI();
       toast('Google подключён. Загружаем подписки.');
       await loadSubscriptions();
+      window.StreamDeskLibrary?.authChanged();
       window.StreamDeskAPI.getCurrentChannel().then(info => {
         if (info?.title) {
           $('modeText').textContent = 'Канал: ' + info.title;
@@ -130,6 +132,7 @@
     updateAuthUI();
     showSigninPlaceholder();
     renderHistory();
+    window.StreamDeskLibrary?.resetLive();
     toast('Отключено. История просмотров остаётся только в этом браузере.');
   }
 
