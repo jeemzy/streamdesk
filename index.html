@@ -28,6 +28,11 @@
           Подписки
           <span id="navSubsCount" class="nav-counter">—</span>
         </button>
+        <button type="button" class="nav-item" data-view="library">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 9 6 3-6 3V9Z"/></svg></span>
+          Медиатека
+          <span id="navLibraryCount" class="nav-counter">—</span>
+        </button>
         <button type="button" class="nav-item" data-view="history">
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v6l4 2"/></svg></span>
           История просмотров
@@ -77,7 +82,7 @@
           <div class="page-intro overview-intro">
             <div>
               <h1>Твой YouTube.<br><span class="gradient-text">Твои правила.</span></h1>
-              <p>Подписки, история просмотров и экспорт данных — в одном аккуратном пространстве.</p>
+              <p>Подписки, медиатека, YouTube Music и история просмотров — в одном аккуратном пространстве.</p>
               <div class="intro-actions">
                 <button class="btn primary" type="button" data-view="subscriptions">Управлять подписками <span>↗</span></button>
                 <button class="btn secondary" type="button" data-view="history">Открыть историю</button>
@@ -99,6 +104,7 @@
           <div class="section-heading"><div><h2>Быстрые действия</h2><p>Всё необходимое в пару кликов</p></div></div>
           <div class="quick-grid">
             <button type="button" class="quick-card" data-view="subscriptions"><div class="quick-icon accent-red">▣</div><div class="quick-info"><h3>Подписки</h3><p>Найди, добавь или удали каналы. Экспортируй список в CSV.</p></div><span class="quick-arrow">↗</span></button>
+            <button type="button" class="quick-card" data-view="library"><div class="quick-icon accent-purple">▤</div><div class="quick-info"><h3>Медиатека</h3><p>Плейлисты, лайки и Watch Later — с фильтром по нескольким каналам.</p></div><span class="quick-arrow">↗</span></button>
             <button type="button" class="quick-card" data-action="import-history"><div class="quick-icon accent-purple">⇧</div><div class="quick-info"><h3>Импорт истории</h3><p>Загрузи ZIP, JSON или HTML из Google Takeout.</p></div><span class="quick-arrow">↗</span></button>
             <button type="button" class="quick-card" data-action="export-history"><div class="quick-icon accent-blue">↓</div><div class="quick-info"><h3>Скачать CSV</h3><p>Сохрани отфильтрованную историю у себя на устройстве.</p></div><span class="quick-arrow">↗</span></button>
           </div>
@@ -121,6 +127,69 @@
           </div>
           <div id="subsBulkBar" class="bulk-bar hidden"><span><strong id="subsSelectedCount">0</strong> выбрано</span><button class="btn secondary small" data-action="export-selected-subs" type="button">↓ CSV выбранных</button><button class="btn danger small" data-action="delete-subs" type="button">Отписаться от выбранных</button><button class="btn ghost small" data-action="clear-subs-selection" type="button">Сбросить</button></div>
           <div class="info-inline"><span>ⓘ</span> Отписка удаляет канал из реальных подписок YouTube. Для этого понадобится подтверждение.</div>
+        </section>
+
+        <!-- LIBRARY: playlists, likes and locally imported Watch Later. Independent of Watch History. -->
+        <section class="page view-page hidden" id="view-library">
+          <div class="eyebrow"><span class="red-dot"></span> YOUTUBE LIBRARY</div>
+          <div class="page-heading">
+            <div><h1>Медиатека<span class="heading-period">.</span></h1><p>Все видео из плейлистов и лайков — вместе, с группировкой по авторам.</p></div>
+            <div class="heading-actions"><button class="btn secondary" type="button" data-library-action="export">↓ Экспорт CSV</button><button class="btn primary" type="button" data-library-action="refresh">↻ Загрузить из YouTube</button></div>
+          </div>
+          <div class="library-stats" aria-label="Сводка медиатеки">
+            <div class="library-stat"><span>Уникальных видео</span><strong id="libStatVideos">0</strong></div>
+            <div class="library-stat"><span>Каналов</span><strong id="libStatChannels">0</strong></div>
+            <div class="library-stat"><span>Плейлистов</span><strong id="libStatPlaylists">0</strong></div>
+            <div class="library-stat"><span>Лайков</span><strong id="libStatLikes">0</strong></div>
+          </div>
+          <div id="libraryNotice" class="library-notice" role="status">Подключи Google, чтобы получить свои плейлисты и лайки. Watch Later можно импортировать отдельно как CSV, JSON или TXT.</div>
+          <div class="library-service-tabs" role="group" aria-label="Категория YouTube или YouTube Music">
+            <button class="library-service active" type="button" data-library-service="all">Все категории</button>
+            <button class="library-service" type="button" data-library-service="youtube">YouTube</button>
+            <button class="library-service" type="button" data-library-service="music">♫ YouTube Music</button>
+            <button class="library-service" type="button" data-library-service="unknown">Не определено</button>
+          </div>
+          <div class="library-source-bar" role="group" aria-label="Источник видеозаписей">
+            <button class="library-source active" type="button" data-library-source="all">Все источники</button>
+            <button class="library-source" type="button" data-library-source="playlists">Плейлисты</button>
+            <button class="library-source" type="button" data-library-source="likes">♥ Лайки</button>
+            <button class="library-source" type="button" data-library-source="watchlater">◷ Watch Later</button>
+          </div>
+          <div class="library-layout">
+            <div class="content-card library-main-card">
+              <div class="library-filters">
+                <div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input type="search" id="librarySearch" placeholder="Название видео или канала…" autocomplete="off" aria-label="Поиск по медиатеке"></div>
+                <select id="libraryPlaylist" class="control-select" aria-label="Конкретный плейлист"><option value="all">Все плейлисты</option></select>
+                <div class="library-multiselect" id="libraryChannelSelector">
+                  <button type="button" id="libraryChannelToggle" class="library-combo-button" data-library-action="toggle-channels" aria-expanded="false" aria-controls="libraryChannelMenu">Все каналы <span>⌄</span></button>
+                  <div id="libraryChannelMenu" class="library-combo-panel hidden">
+                    <input type="search" id="libraryChannelSearch" autocomplete="off" placeholder="Найти канал…" aria-label="Поиск среди каналов в плейлистах">
+                    <div class="library-combo-actions"><span id="libraryChannelOptionCount">0 каналов</span><button type="button" data-library-action="clear-channels">Сбросить</button></div>
+                    <div id="libraryChannelOptions" class="library-channel-options" role="group" aria-label="Выбери один или несколько каналов"></div>
+                  </div>
+                </div>
+              </div>
+              <div id="libraryChannelChips" class="library-channel-chips hidden" aria-label="Выбранные каналы"></div>
+              <div class="library-result-bar"><span id="libraryResultCaption">Медиатека ещё не загружена</span><button class="filter-clear" type="button" data-library-action="clear-filters">Сбросить фильтры</button></div>
+              <div id="libraryList" class="library-results"><div class="empty-state"><span>▤</span><h3>Открой свои плейлисты</h3><p>Подключи аккаунт Google и нажми «Загрузить из YouTube».</p></div></div>
+              <div id="libraryPaginator" class="paginator hidden"><button class="btn secondary small" type="button" data-library-action="prev">← Назад</button><span id="libraryPageLabel">1 / 1</span><button class="btn secondary small" type="button" data-library-action="next">Вперёд →</button></div>
+            </div>
+            <aside class="library-sidebar">
+              <div class="library-side-card">
+                <h3>Разделение YouTube / Music</h3>
+                <p>Google API не указывает, в каком приложении создан плейлист. Назначь категорию для нужных плейлистов. Отметки сохраняются только здесь, в браузере.</p>
+                <div id="libraryTypeList" class="library-type-list"></div>
+              </div>
+              <div class="library-side-card">
+                <h3>Watch Later</h3>
+                <p>Официальный API не позволяет прочитать «Смотреть позже». Можно добавить в каталог локальный экспорт CSV/JSON/TXT из другого инструмента. Изменения не затронут YouTube.</p>
+                <button type="button" class="btn secondary library-import-btn" data-library-action="import-watchlater">⇧ Импорт Watch Later</button>
+                <a href="https://www.youtube.com/playlist?list=WL" target="_blank" rel="noopener noreferrer" class="insight-link">Открыть Watch Later в YouTube ↗</a>
+                <span class="library-side-small" id="libraryImportedCount">Локальных видео: 0</span>
+              </div>
+            </aside>
+          </div>
+          <div class="info-inline"><span>ⓘ</span> Плейлисты и лайки читаются из YouTube API. YouTube Music — ручная классификация доступных видео. Watch Later доступен только после локального импорта. CSV содержит текущие фильтры.</div>
         </section>
 
         <!-- HISTORY -->
@@ -174,6 +243,7 @@
     </div>
   </div>
 
+  <input type="file" id="libraryWatchLaterFile" accept=".csv,.txt,.json,text/csv,text/plain,application/json" class="visually-hidden" aria-label="Импорт Watch Later">
   <input type="file" id="takeoutFile" accept=".json,.html,.htm,.zip,application/json,text/html,application/zip" multiple class="visually-hidden" aria-label="Файл истории Google Takeout">
 
   <div id="modalBackdrop" class="modal-backdrop hidden" role="presentation">
@@ -187,5 +257,6 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="oauth.js"></script>
   <script src="client.js"></script>
+  <script src="library.js"></script>
 </body>
 </html>
