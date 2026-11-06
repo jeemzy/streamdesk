@@ -1,0 +1,27 @@
+[
+  {
+    "header": "YouTube",
+    "title": "Watched Пример: как устроены веб-интерфейсы",
+    "titleUrl": "https://www.youtube.com/watch?v=AAAAAAAAAAA",
+    "subtitles": [
+      {"name": "Пример канала", "url": "https://www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw"}
+    ],
+    "time": "2026-11-01T13:21:00Z",
+    "products": ["YouTube"]
+  },
+  {
+    "header": "YouTube Music",
+    "title": "Watched Пример: музыкальный трек",
+    "titleUrl": "https://music.youtube.com/watch?v=BBBBBBBBBBB",
+    "subtitles": [
+      {"name": "Sample Music", "url": "https://www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw"}
+    ],
+    "time": "2026-11-02T08:00:00Z",
+    "products": ["YouTube Music"]
+  },
+  {
+    "title": "Watched Видео без определённого типа",
+    "subtitles": [{"name": "Неизвестный канал"}],
+    "time": "2026-11-03T10:15:00Z"
+  }
+]
